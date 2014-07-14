@@ -1,2 +1,5 @@
 
-# DaVinci package for merging data from several events
+# MergeEvent
+
+A DaVinci package for merging data from several events into one.
+
