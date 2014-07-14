@@ -1,0 +1,7 @@
+project DaVinci_v35r1
+
+use DAVINCI DAVINCI_v35r0
+
+build_strategy with_installarea
+structure_strategy without_version_directory
+
