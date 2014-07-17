@@ -34,7 +34,7 @@ SelD2KKPi = Selection( "SelD2KKPi",
                         Algorithm = _d2kkpi,
                         RequiredSelections=[_kaons,_pions])  
 
-dumpAlg = DumpAddress(OutputFile='trackaddr.txt', ObjectPath='/Event')
+dumpAlg = DumpAddr(OutputFile='trackaddr.txt', ObjectPath='/Event')
 SeqD2KKPi = SelectionSequence('MCFilter',TopSelection = SelD2KKPi, PostSelectionAlgs=[dumpAlg])
 
 tuple = DecayTreeTuple("out")
@@ -50,17 +50,16 @@ dstWriter = SelDSTWriter("MyDSTWriter",
                          OutputFileSuffix = 'EXTRA'
                          )
 
-from Configurables import Gaudi__Examples__MultiInput__DumpAddress as DumpAddress
 from Gaudi.Configuration import *
 
 from Configurables import DaVinci
 DaVinci().EvtMax = 1000
-DaVinci().PrintFreq = 1
+DaVinci().PrintFreq = 10
 DaVinci().SkipEvents = 0
 DaVinci().DataType = "2012"
 DaVinci().HistogramFile = "meta.root"
 DaVinci().Simulation = True
-DaVinci().appendToMainSequence([tuple])
+DaVinci().appendToMainSequence([dstWriter.sequence(), tuple])
 DaVinci().TupleFile = "D_s_minus.root"
 
 # Change the column size of Timing table
