@@ -34,7 +34,7 @@ SelD2KKPi = Selection( "SelD2KKPi",
                         Algorithm = _d2kkpi,
                         RequiredSelections=[_kaons,_pions])  
 
-dumpAlg = DumpAddr(OutputFile='trackaddr.txt', ObjectPath='/Event')
+dumpAlg = DumpAddr(OutputFile='eventaddr.txt', ObjectPath='/Event')
 SeqD2KKPi = SelectionSequence('MCFilter',TopSelection = SelD2KKPi, PostSelectionAlgs=[dumpAlg])
 
 tuple = DecayTreeTuple("out")
