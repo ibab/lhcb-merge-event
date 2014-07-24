@@ -6,3 +6,8 @@ install.*.history
 setup.csh
 setup.sh
 x86_64-*-opt/
+x86_64-*-dbg/
+.svn
+*.make
+*.makecmtsave
+*.cmt
