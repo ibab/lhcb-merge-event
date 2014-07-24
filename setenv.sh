@@ -1,4 +1,6 @@
+#!/bin/sh
+
 export PS1="*$PS1"
-export User_release_area=/afs/cern.ch/user/i/ibabusch/public/MergeEvent/cmtuser
+export User_release_area="$(pwd)/cmtuser"
 . SetupProject.sh DaVinci v35r1
 
