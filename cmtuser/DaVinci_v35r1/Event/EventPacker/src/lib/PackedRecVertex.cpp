@@ -107,6 +107,11 @@ void RecVertexPacker::unpack( const PackedData       & pvert,
     const int trk = *(pverts.refs().begin()+kk);
     m_pack.hintAndKey( trk, &pverts, &verts, hintID, tKey );
     SmartRef<LHCb::Track> ref( &verts, hintID, tKey );
+    int idx = 0;
+    int key = 0;
+    m_pack.indexAndKey(trk, idx, key);
+
+    std::cout << ">>>>>> DEBUG >>>> stuff: " << pverts.linkMgr()->link(idx)->path() << " " << ref << " " << ref.data() << " " << verts << " " << hintID << " " << tKey << std::endl;
     // If available, get the weight
     const float weight = (float)( (int)pverts.version()>1 ?
                                   m_pack.fraction(pverts.weights()[kk]) : 1.0 );

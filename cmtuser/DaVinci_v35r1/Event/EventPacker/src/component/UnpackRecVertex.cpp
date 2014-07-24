@@ -55,6 +55,9 @@ StatusCode UnpackRecVertex::execute()
 
   LHCb::RecVertices* newRecVertices = new LHCb::RecVertices();
   newRecVertices->reserve(dst->vertices().size());
+  std::cout << ">>>> DEBUG >>>> Packed size is " << dst->vertices().size() << std::endl;
+  std::cout << ">>>> DEBUG >>>> My input is " << m_inputName << std::endl;
+  std::cout << ">>>> DEBUG >>>> My output is " << m_outputName << std::endl;
   put( newRecVertices, m_outputName );
 
   const LHCb::RecVertexPacker rvPacker(*dynamic_cast<GaudiAlgorithm*>(this));
@@ -89,6 +92,7 @@ StatusCode UnpackRecVertex::execute()
         {
 
           std::cout << ">>>> DEBUG >>>> Reported tracks size: " << (*iRV)->tracks().size() << std::endl;
+          std::cout << ">>>> DEBUG >>>> Tracks: " << (*iRV)->tracks() << std::endl;
 
           int len = 0;
           
@@ -101,7 +105,6 @@ StatusCode UnpackRecVertex::execute()
             if (*iTk) {
               // Find the weight for this track
               float wgt = 1.0;
-              std::cout << ">>>> DEBUG >>>> " << (*iTk) << std::endl;
               for ( std::vector<std::pair<int,float> >::const_iterator iWW = weights->weights().begin();
                     iWW != weights->weights().end(); ++iWW )
               {
@@ -113,8 +116,6 @@ StatusCode UnpackRecVertex::execute()
               }
               // save the weight in the map
               trksWeights[*iTk] = wgt;
-            } else {
-                std::cout << ">>>> DEBUG >>>> NULLPOINTER" << std::endl;
             }
           }
 
