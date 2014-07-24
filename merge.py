@@ -11,11 +11,6 @@ from OtherMCParticles import *
 GaudiPersistency()
 importOptions("data_local.py")
 
-unpack = UnpackTrack("OtherUnpack")
-unpack.InputName = '/Event/NewEvent/pRec'
-unpack.OutputName = 'NewEvent/Rec'
-unpack.OutputLevel = DEBUG
-
 # Selection for this loop
 _kaons = DataOnDemand(Location='Phys/StdMCKaons/Particles')
 _pions = DataOnDemand(Location='Phys/StdMCPions/Particles')
