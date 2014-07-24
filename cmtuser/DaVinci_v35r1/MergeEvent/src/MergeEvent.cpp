@@ -34,11 +34,7 @@ StatusCode MergeEvent::execute() {
   LHCb::Tracks *extraTracks = get<LHCb::Tracks>("/Event/NewEvent/Rec/Track/Best");
   info() << "********* There are " << tracks->size() << " tracks in main event" << endmsg;
   info() << "********* There are " << extraTracks->size() << " extra tracks in extra event" << endmsg;
-  for (auto &t: *extraTracks) {
-      tracks->add(t);
-  }
-  LHCb::Tracks *tracksCheck = get<LHCb::Tracks>("/Event/Rec/Track/Best");
-  info() << "********* MERGED: There are " << tracksCheck->size() << " tracks in main event" << endmsg;
+
   return StatusCode::SUCCESS;
 }
 
