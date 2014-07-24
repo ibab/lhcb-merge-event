@@ -13,11 +13,12 @@ importOptions("data_local.py")
 
 evtAlgs = GaudiSequencer("EventAlgs",
                          Members=[RegisterAddr(AddressesFile='eventaddr.txt', OutputLevel=DEBUG),
-                                  MergeEvent(),
+                                  makeparts,
+                                  #MergeEvent(),
                                   ])
 
 from Configurables import DaVinci
-DaVinci().EvtMax = 100
+DaVinci().EvtMax = 5
 DaVinci().PrintFreq = 1
 DaVinci().SkipEvents = 0
 DaVinci().DataType = "2012"
