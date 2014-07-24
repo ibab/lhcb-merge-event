@@ -11,20 +11,6 @@ from OtherMCParticles import *
 GaudiPersistency()
 importOptions("data_local.py")
 
-_otherKaons = DataOnDemand(Location='Phys/OtherAllKaons/Particles')
-_otherPions = DataOnDemand(Location='Phys/OtherAllPions/Particles')
-_otherd2kkpi = CombineParticles("otherd2kkpi")
-_otherd2kkpi.DecayDescriptor = "D_s- -> K- K+ pi-"
-_otherd2kkpi.MotherCut = "ALL"
-
-selD2KKPiOther = Selection("SelD2KKPiOther",
-                           Algorithm = _otherd2kkpi,
-                           RequiredSelections=[_otherKaons,_otherPions])  
-
-selD2KKPiOther.OutputLevel = 1
-
-seqD2KKPiOther = SelectionSequence('MCFilterOther', TopSelection = selD2KKPiOther)
-
 evtAlgs = GaudiSequencer("EventAlgs",
                          Members=[RegisterAddr(AddressesFile='eventaddr.txt', OutputLevel=DEBUG),
                                   MergeEvent(),
@@ -44,5 +30,4 @@ DaVinci().UserAlgorithms = [evtAlgs]
 from Configurables import TimingAuditor, SequencerTimerTool
 TimingAuditor().addTool(SequencerTimerTool,name="TIMER")
 TimingAuditor().TIMER.NameSize = 60
-
 
