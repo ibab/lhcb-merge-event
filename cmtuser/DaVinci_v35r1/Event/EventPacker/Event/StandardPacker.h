@@ -201,7 +201,15 @@ public:
   {
     int indx(0);
     indexAndKey(data,indx,key);
-    hint = target->linkMgr()->addLink( source->linkMgr()->link(indx)->path(), 0 );
+    std::string path = source->linkMgr()->link(indx)->path();
+    if (path == "/Event/Rec/Track/Best") {
+        path = "/Event/NewEvent/Rec/Track/Best";
+    }
+    //if (path == "/Event/MC/Particles") {
+    //    path = "/Event/NewEvent/MC/Particles";
+    //}
+    std::cout << ">>>> DEBUG >>>>>>> " << path << std::endl;
+    hint = target->linkMgr()->addLink( path, 0 );
   }
 
   //---------------------------------------------------------------------------
