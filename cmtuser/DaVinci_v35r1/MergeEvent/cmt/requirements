@@ -7,6 +7,7 @@ use             GaudiKernel *
 use             GaudiUtils  *
 use             GaudiAlg  *
 use             PhysEvent  * Event
+use             MCEvent   v* Event
 
 use             ROOT        * LCG_Interfaces
 use             AIDA        * LCG_Interfaces -no_auto_imports

@@ -27,22 +27,24 @@ makeparts.Members.append(ppMaker)
 
 allPions = NoPIDsParticleMaker('OtherAllPions'
                               , Particle = "pion"
-                              #, WriteP2PVRelations = False
-                              , Output="Phys/OtherAllPions"
-                              , Input="Phys/OtherProtos"
+                              , Input = "Rec/ProtoP/Charged"
+                              , Output = "Phys/OtherAllPions/Particles"
+                              , WriteP2PVRelations = False
+                              , InputPrimaryVertices = "Rec/Vertex/Primary"
                               , RootInTES='/Event/NewEvent'
                               )
 
-#allKaons = NoPIDsParticleMaker('OtherAllKaons'
-#                              , Particle = "kaon"
-#                              #, WriteP2PVRelations = False
-#                              , Output="Phys/OtherAllKaons"
-#                              , Input="Phys/OtherProtos"
-#                              , RootInTES='/Event/NewEvent'
-#                              )
+allKaons = NoPIDsParticleMaker('OtherAllKaons'
+                              , Particle = "kaon"
+                              , Input = "Rec/ProtoP/Charged"
+                              , Output = "Phys/OtherAllKaons/Particles"
+                              , WriteP2PVRelations = False
+                              , InputPrimaryVertices = "Rec/Vertex/Primary"
+                              , RootInTES = "/Event/NewEvent"
+                              )
 
-#allPions.OutputLevel = 1
-#allKaons.OutputLevel = 1
+allPions.OutputLevel = 2
+allKaons.OutputLevel = 2
 
 makeparts.Members.append(allPions)
 #makeparts.Members.append(allKaons)

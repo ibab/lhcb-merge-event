@@ -22,6 +22,11 @@ private:
     /// Address details for the data to be added to the main event.
     std::vector<RootAddressArgs> m_addresses;
     size_t m_count;
+    std::string m_prefix;
+    std::vector<std::string> m_locations;
+
+    StatusCode relinkAll(const std::string& subPath, const DataObject* pObj, long depth);
+    StatusCode resetLinks(const std::string& subPath, const DataObject* pMCObj);
 };
 
 #endif
