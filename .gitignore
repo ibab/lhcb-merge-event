@@ -11,3 +11,7 @@ x86_64-*-dbg/
 *.make
 *.makecmtsave
 *.cmt
+*.root
+*.dst
+.BenderHistory*
+*catalog.xml
