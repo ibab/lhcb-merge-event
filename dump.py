@@ -57,6 +57,8 @@ DaVinci().EvtMax = 1000
 DaVinci().PrintFreq = 10
 DaVinci().SkipEvents = 0
 DaVinci().DataType = "2012"
+DaVinci().DDDBtag = "MC11-20111102"
+DaVinci().CondDBtag = "sim-20121025-vc-mu100"
 DaVinci().HistogramFile = "meta.root"
 DaVinci().Simulation = True
 DaVinci().appendToMainSequence([dstWriter.sequence(), tuple])

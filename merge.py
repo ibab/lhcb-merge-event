@@ -46,7 +46,9 @@ from Configurables import DaVinci
 DaVinci().EvtMax = 1
 DaVinci().PrintFreq = 1
 DaVinci().SkipEvents = 0
-DaVinci().DataType = "2012"
+DaVinci().DataType = "2011"
+DaVinci().DDDBtag = "MC11-20111102"
+DaVinci().CondDBtag = "sim-20121025-vc-mu100"
 DaVinci().HistogramFile = "meta.root"
 DaVinci().Simulation = True
 DaVinci().TupleFile = "out.root"
