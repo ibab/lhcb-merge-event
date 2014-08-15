@@ -72,42 +72,34 @@ StatusCode RegisterAddr::execute() {
                                   "NewEvent/MC"});
   for (auto &path: paths) {
       DataObject *event = get<DataObject>(path);
-      relinkAll("NewEvent", event, 9999);
+      relinkAll(event);
   }
 
   return StatusCode::SUCCESS;
 }
 
-StatusCode RegisterAddr::resetLinks( const std::string& subPath,
-                                      const DataObject* pMCObj )
+StatusCode RegisterAddr::resetLinks( const DataObject* pMCObj )
 {
 
-  if ( msgLevel(MSG::DEBUG) )
-  {
-    debug() << "  Resetting links for " << pMCObj->name() <<  endmsg;
-  }
+  debug() << "Resetting links for " << pMCObj->name() <<  endmsg;
   
   LinkManager::LinkVector oldlinks = pMCObj->linkMgr()->m_linkVector;
-  std::cout << ">>>>>> DEBUG >>>>> Link length: " << oldlinks.size() << std::endl;
-  if ( oldlinks.empty() ) return StatusCode::SUCCESS;
+  debug() << "Link length: " << oldlinks.size() << endmsg;
+  if (oldlinks.empty()) return StatusCode::SUCCESS;
 
   LinkManager::LinkIterator ilink;
-  std::vector< std::pair< std::string, long > > refs;
-  for ( ilink = oldlinks.begin(); ilink!= oldlinks.end(); ++ilink)
-  {
-    std::cout << ">>>>>> DEBUG >>>>> Old path: " << (*ilink)->path() << std::endl;
-    refs.push_back( std::make_pair( (*ilink)->path(), (*ilink)->ID() ) );
+  std::vector<std::pair<std::string, long>> refs;
+  for (auto link: oldlinks) {
+    debug() << "Old path: " << link->path() << endmsg;
+    refs.push_back(std::make_pair(link->path(), link->ID()));
   }
   pMCObj->linkMgr()->clearLinks();
-  for ( std::vector< std::pair< std::string, long > >::iterator il=refs.begin();
-        refs.end()!=il; ++il )
-  {
-    const std::string newPath = "/Event/NewEvent" + (*il).first.erase(0, 6);
-    std::cout << ">>>>>> DEBUG >>>>>> New path:" << newPath << std::endl;
-    const long itemp = (*il).second;
-    const long lid = pMCObj->linkMgr()->addLink( newPath, NULL );
-    if ( lid != itemp )
-    {
+  for (auto ref: refs) {
+    const std::string newPath = "/Event/NewEvent" + ref.first.erase(0, 6);
+    debug() << "New path: " << newPath << endmsg;
+    const long itemp = ref.second;
+    const long lid = pMCObj->linkMgr()->addLink(newPath, NULL);
+    if (lid != itemp) {
       return StatusCode::FAILURE;
     }
   }
@@ -115,28 +107,26 @@ StatusCode RegisterAddr::resetLinks( const std::string& subPath,
   return StatusCode::SUCCESS;
 }
 
-StatusCode RegisterAddr::relinkAll( const std::string& subPath,
-                                      const DataObject* pObj, long depth ) {
-
-  depth = depth-1;
-  if( 0 >= depth ) return StatusCode::SUCCESS;
+StatusCode RegisterAddr::relinkAll( const DataObject* pObj) {
 
   // Find and load all the leafs out of the object
   std::vector<IRegistry*> leaves;
-  SmartIF<IDataManagerSvc> dataMgr( eventSvc() );
+  SmartIF<IDataManagerSvc> dataMgr(eventSvc());
   StatusCode sc = dataMgr->objectLeaves(pObj, leaves);
   if( !sc.isSuccess() ) return sc;
+
   DataObject *pMCObj = 0;
   std::string objPath;
+
   for( std::vector<IRegistry*>::iterator ileaf=leaves.begin();
        ileaf!=leaves.end(); ++ileaf) {
     sc = eventSvc()->retrieveObject(*ileaf, objPath, pMCObj );
     if( sc.isFailure() ) {
       return sc;
     }
-    sc = resetLinks( subPath, pMCObj );
+    sc = resetLinks( pMCObj );
     if( !sc.isSuccess() ) return sc;
-    sc = relinkAll( subPath, pMCObj, depth );
+    sc = relinkAll( pMCObj );
     if( !sc.isSuccess() ) return sc;
   }
 

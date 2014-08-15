@@ -25,8 +25,8 @@ private:
     std::string m_prefix;
     std::vector<std::string> m_locations;
 
-    StatusCode relinkAll(const std::string& subPath, const DataObject* pObj, long depth);
-    StatusCode resetLinks(const std::string& subPath, const DataObject* pMCObj);
+    StatusCode relinkAll(const DataObject* pObj);
+    StatusCode resetLinks(const DataObject* pMCObj);
 };
 
 #endif
