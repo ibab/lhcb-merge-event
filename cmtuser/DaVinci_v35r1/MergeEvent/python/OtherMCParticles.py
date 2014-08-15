@@ -47,5 +47,5 @@ allPions.OutputLevel = 2
 allKaons.OutputLevel = 2
 
 makeparts.Members.append(allPions)
-#makeparts.Members.append(allKaons)
+makeparts.Members.append(allKaons)
 
