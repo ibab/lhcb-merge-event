@@ -16,11 +16,11 @@ makeparts = GaudiSequencer('MakeOtherParticles', RootInTES='/Event/NewEvent/')
 #makeDLLs.ProtoParticleLocation = 'NewEvent/Rec/ProtoP/OtherProtos'
 #makeparts.Members.append(makeDLLs)
 
-#assoc = ChargedPP2MC('AssocProtos')
-#assoc.TrackLocations = [ 'NewEvent/Rec/Track/Best' ]
-#assoc.InputData = [ 'NewEvent/Rec/ProtoP/Charged' ]
-#assoc.OutputTable = 'NewEvent/Relations/Rec/ProtoP/Charged'
-#makeparts.Members.append(assoc)
+assoc = ChargedPP2MC('AssocProtos')
+assoc.TrackLocations = [ '/Event/NewEvent/Rec/Track/Best' ]
+assoc.InputData = [ '/Event/NewEvent/Rec/ProtoP/Charged' ]
+assoc.OutputTable = '/Event/NewEvent/Relations/Rec/ProtoP/Charged'
+makeparts.Members.append(assoc)
 
 ppMaker = ChargedProtoParticleMaker('OtherProtoParticles', Output="Phys/OtherProtos", RootInTES='/Event/NewEvent')
 makeparts.Members.append(ppMaker)
