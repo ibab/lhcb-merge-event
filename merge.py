@@ -65,12 +65,20 @@ from Configurables import StoreExplorerAlg
 
 expl = StoreExplorerAlg('Explorer')
 
+tuple = DecayTreeTuple("Ds2KKPiTuple")
+tuple.Decay = "[D_s+ -> K- K+ pi+]CC"
+#tuple.Inputs = [seqD2KKPi.outputLocation()]
+tuple.Inputs = ['Phys/SelD2KKPiOther/Particles']
+#mcTruth = tuple.addTupleTool("TupleToolMCTruth")
+tuple.addTupleTool("TupleToolPropertime")
+
 evtAlgs = GaudiSequencer("EventAlgs",
                          Members=[RegisterAddr(AddressesFile='eventaddr.txt', OutputLevel=DEBUG),
                                   #MergeEvent(),
                                   makeparts,
-                                  expl,
                                   seqD2KKPiOther.sequence(),
+                                  expl,
+                                  tuple
                                   ])
 
 from Configurables import DaVinci
