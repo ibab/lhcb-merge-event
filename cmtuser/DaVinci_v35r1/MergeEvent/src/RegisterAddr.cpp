@@ -2,6 +2,7 @@
 #include "GaudiKernel/SmartDataPtr.h"
 #include "GaudiKernel/MsgStream.h"
 #include "GaudiKernel/IDataManagerSvc.h"
+#include "GaudiKernel/IDataProviderSvc.h"
 
 #include <Event/Track.h>
 
@@ -69,18 +70,22 @@ StatusCode RegisterAddr::execute() {
 
   // Test if it works
   std::vector<std::string> paths({"NewEvent/pRec",
-                                  "NewEvent/MC"});
+                                  "NewEvent/MC",
+                                  "NewEvent/pSim",
+                                  "NewEvent/Link/Rec/Track"});
   for (auto &path: paths) {
       DataObject *event = get<DataObject>(path);
       relinkAll(event);
   }
+
+  auto *link = get<DataObject>("/Event/NewEvent/Link");
+  SmartIF<IDataProviderSvc>(eventSvc())->linkObject("/Event/Link/NewEvent", link);
 
   return StatusCode::SUCCESS;
 }
 
 StatusCode RegisterAddr::resetLinks( const DataObject* pMCObj )
 {
-
   debug() << "Resetting links for " << pMCObj->name() <<  endmsg;
   
   LinkManager::LinkVector oldlinks = pMCObj->linkMgr()->m_linkVector;
@@ -109,25 +114,24 @@ StatusCode RegisterAddr::resetLinks( const DataObject* pMCObj )
 
 StatusCode RegisterAddr::relinkAll( const DataObject* pObj) {
 
-  // Find and load all the leafs out of the object
+  // Find and load all the leaves out of the object
   std::vector<IRegistry*> leaves;
   SmartIF<IDataManagerSvc> dataMgr(eventSvc());
   StatusCode sc = dataMgr->objectLeaves(pObj, leaves);
   if( !sc.isSuccess() ) return sc;
 
-  DataObject *pMCObj = 0;
+  DataObject *pMCObj = nullptr;
   std::string objPath;
 
-  for( std::vector<IRegistry*>::iterator ileaf=leaves.begin();
-       ileaf!=leaves.end(); ++ileaf) {
-    sc = eventSvc()->retrieveObject(*ileaf, objPath, pMCObj );
+  for(auto reg: leaves) {
+    sc = eventSvc()->retrieveObject(reg, objPath, pMCObj );
     if( sc.isFailure() ) {
       return sc;
     }
-    sc = resetLinks( pMCObj );
-    if( !sc.isSuccess() ) return sc;
-    sc = relinkAll( pMCObj );
-    if( !sc.isSuccess() ) return sc;
+    sc = relinkAll(pMCObj);
+    if(!sc.isSuccess()) return sc;
+    sc = resetLinks(pMCObj);
+    if(!sc.isSuccess()) return sc;
   }
 
   return StatusCode::SUCCESS;

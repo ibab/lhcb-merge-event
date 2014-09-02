@@ -6,7 +6,6 @@ makeparts = GaudiSequencer('MakeOtherParticles', RootInTES='/Event/NewEvent/')
 #assocTracks.RootOfContainers = 'Rec/Track'
 #makeparts.Members.append(assocTracks)
 #
-
 #richInfo = ChargedProtoParticleAddRichInfo("AddRichToProtos")
 #richInfo.InputRichPIDLocation = 'NewEvent/Rec/Rich/PIDs'
 #richInfo.ProtoParticleLocation = 'NewEvent/Rec/ProtoP/OtherProtos'
@@ -19,7 +18,8 @@ makeparts = GaudiSequencer('MakeOtherParticles', RootInTES='/Event/NewEvent/')
 assoc = ChargedPP2MC('AssocProtos')
 assoc.TrackLocations = [ '/Event/NewEvent/Rec/Track/Best' ]
 assoc.InputData = [ '/Event/NewEvent/Rec/ProtoP/Charged' ]
-assoc.OutputTable = '/Event/NewEvent/Relations/Rec/ProtoP/Charged'
+assoc.OutputTable = '/Event/NewEvent/Relations/NewEvent/Rec/ProtoP/Charged'
+assoc.OutputLevel = 1
 makeparts.Members.append(assoc)
 
 ppMaker = ChargedProtoParticleMaker('OtherProtoParticles', Output="Phys/OtherProtos", RootInTES='/Event/NewEvent')
@@ -30,7 +30,7 @@ allPions = NoPIDsParticleMaker('OtherAllPions'
                               , Input = "Rec/ProtoP/Charged"
                               , Output = "Phys/OtherAllPions/Particles"
                               , WriteP2PVRelations = False
-                              , InputPrimaryVertices = "Rec/Vertex/Primary"
+                              , InputPrimaryVertices = "/Event/NewEvent/Rec/Vertex/Primary"
                               , RootInTES='/Event/NewEvent'
                               )
 
@@ -39,7 +39,7 @@ allKaons = NoPIDsParticleMaker('OtherAllKaons'
                               , Input = "Rec/ProtoP/Charged"
                               , Output = "Phys/OtherAllKaons/Particles"
                               , WriteP2PVRelations = False
-                              , InputPrimaryVertices = "Rec/Vertex/Primary"
+                              , InputPrimaryVertices = "/Event/NewEvent/Rec/Vertex/Primary"
                               , RootInTES = "/Event/NewEvent"
                               )
 

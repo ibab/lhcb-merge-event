@@ -17,7 +17,7 @@ _otherKaons = DataOnDemand(Location='/Event/NewEvent/Phys/OtherAllKaons/Particle
 _otherPions = DataOnDemand(Location='/Event/NewEvent/Phys/OtherAllPions/Particles')
 _otherd2kkpi = CombineParticles("otherd2kkpi")
 _otherd2kkpi.DecayDescriptor = "D_s- -> K- K+ pi-"
-_otherd2kkpi.MotherCut = "(mcMatch('[D_s+  ==> K- K+ pi+]CC'))"
+_otherd2kkpi.MotherCut = "(mcMatch('[D_s+  ==> K- K+ pi+]CC', ['/Event/NewEvent/Relations/NewEvent/Rec/ProtoP/Charged'], '/Event/NewEvent/MC/Particles'))"
 _otherd2kkpi.Preambulo = [
     "from LoKiPhysMC.decorators import *",
     "from PartProp.Nodes import CC" ]
@@ -26,7 +26,7 @@ selD2KKPiOther = Selection("SelD2KKPiOther",
                            Algorithm = _otherd2kkpi,
                            RequiredSelections=[_otherKaons,_otherPions])  
 
-selD2KKPiOther.OutputLevel = 2
+selD2KKPiOther.OutputLevel = 1
 
 seqD2KKPiOther = SelectionSequence('MCFilterOther', TopSelection = selD2KKPiOther)
 
@@ -38,8 +38,8 @@ evtAlgs = GaudiSequencer("EventAlgs",
                          Members=[RegisterAddr(AddressesFile='eventaddr.txt', OutputLevel=DEBUG),
                                   #MergeEvent(),
                                   makeparts,
+                                  expl,
                                   seqD2KKPiOther.sequence(),
-                                  expl
                                   ])
 
 from Configurables import DaVinci
@@ -54,15 +54,17 @@ DaVinci().Simulation = True
 DaVinci().TupleFile = "out.root"
 DaVinci().UserAlgorithms = [evtAlgs]
 
-from Configurables import UnpackRecVertex
-unpackT = UnpackTrack('UnpackTrackOther', RootInTES='/Event/NewEvent/')
-unpackV = UnpackRecVertex('UnpackRecVertexOther', RootInTES='/Event/NewEvent/')
-unpackV.OutputLevel = 1
-#DataOnDemandSvc().AlgMap['/Event/NewEvent/Rec/Track/Best'] = unpackT
-#DataOnDemandSvc().AlgMap['/Event/NewEvent/Rec/Vertex/Primary'] = unpackV
+from Configurables import UnpackMCParticle
+unpackMC = UnpackMCParticle('OtherUnpackMCParticle', InputName='/Event/NewEvent/pSim/MCParticles', OutputName='/Event/NewEvent/MC/Particles')
+unpackMC.OutputLevel = 1
+
+DataOnDemandSvc().AlgMap['/Event/NewEvent/MC/Particles'] = unpackMC
 
 # Change the column size of Timing table
 from Configurables import TimingAuditor, SequencerTimerTool
 TimingAuditor().addTool(SequencerTimerTool,name="TIMER")
 TimingAuditor().TIMER.NameSize = 60
+
+from Configurables import AuditorSvc 
+AuditorSvc().Auditors.append("TES::TraceAuditor")
 
