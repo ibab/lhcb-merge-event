@@ -15,7 +15,7 @@ importOptions("data_local.py")
 # Selection for other loop
 _otherKaons = DataOnDemand(Location='/Event/NewEvent/Phys/OtherAllKaons/Particles')
 _otherPions = DataOnDemand(Location='/Event/NewEvent/Phys/OtherAllPions/Particles')
-_otherd2kkpi = CombineParticles("otherd2kkpi")
+_otherd2kkpi = CombineParticles("otherd2kkpi", InputPrimaryVertices="/Event/NewEvent/Rec/Vertex/Primary")
 _otherd2kkpi.DecayDescriptor = "D_s- -> K- K+ pi-"
 _otherd2kkpi.MotherCut = "(mcMatch('[D_s+  ==> K- K+ pi+]CC', ['/Event/NewEvent/Relations/NewEvent/Rec/ProtoP/Charged'], '/Event/NewEvent/MC/Particles'))"
 _otherd2kkpi.Preambulo = [
@@ -24,7 +24,7 @@ _otherd2kkpi.Preambulo = [
 
 selD2KKPiOther = Selection("SelD2KKPiOther",
                            Algorithm = _otherd2kkpi,
-                           RequiredSelections=[_otherKaons,_otherPions])  
+                           RequiredSelections=[_otherKaons, _otherPions])  
 
 selD2KKPiOther.OutputLevel = 1
 
@@ -57,8 +57,17 @@ DaVinci().UserAlgorithms = [evtAlgs]
 from Configurables import UnpackMCParticle
 unpackMC = UnpackMCParticle('OtherUnpackMCParticle', InputName='/Event/NewEvent/pSim/MCParticles', OutputName='/Event/NewEvent/MC/Particles')
 unpackMC.OutputLevel = 1
-
 DataOnDemandSvc().AlgMap['/Event/NewEvent/MC/Particles'] = unpackMC
+
+from Configurables import UnpackMCVertex
+unpackMCV = UnpackMCVertex('OtherUnpackMCVertex', InputName='/Event/NewEvent/pSim/MCVertices', OutputName='/Event/NewEvent/MC/Vertices')
+unpackMCV.OutputLevel = 1
+DataOnDemandSvc().AlgMap['/Event/NewEvent/MC/Vertices'] = unpackMCV
+
+from Configurables import UnpackRecVertex
+unpackPV = UnpackRecVertex('OtherUnpackRecVertex', InputName='/Event/NewEvent/pRec/Vertex/Primary', OutputName='/Event/NewEvent/Rec/Vertex/Primary', WeightsVector='/Event/NewEvent/Rec/Vertex/Weights')
+unpackPV.OutputLevel = 1
+DataOnDemandSvc().AlgMap['/Event/NewEvent/Rec/Vertex/Primary'] = unpackPV
 
 # Change the column size of Timing table
 from Configurables import TimingAuditor, SequencerTimerTool

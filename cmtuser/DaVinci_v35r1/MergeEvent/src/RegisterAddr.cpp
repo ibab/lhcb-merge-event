@@ -72,6 +72,7 @@ StatusCode RegisterAddr::execute() {
   std::vector<std::string> paths({"NewEvent/pRec",
                                   "NewEvent/MC",
                                   "NewEvent/pSim",
+                                  "NewEvent/Rec/Track",
                                   "NewEvent/Link/Rec/Track"});
   for (auto &path: paths) {
       DataObject *event = get<DataObject>(path);
@@ -80,6 +81,9 @@ StatusCode RegisterAddr::execute() {
 
   auto *link = get<DataObject>("/Event/NewEvent/Link");
   SmartIF<IDataProviderSvc>(eventSvc())->linkObject("/Event/Link/NewEvent", link);
+
+  auto *best = get<DataObject>("/Event/NewEvent/Rec/Track/Best");
+  resetLinks(best);
 
   return StatusCode::SUCCESS;
 }

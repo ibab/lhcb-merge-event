@@ -30,7 +30,7 @@ allPions = NoPIDsParticleMaker('OtherAllPions'
                               , Input = "Rec/ProtoP/Charged"
                               , Output = "Phys/OtherAllPions/Particles"
                               , WriteP2PVRelations = False
-                              , InputPrimaryVertices = "/Event/NewEvent/Rec/Vertex/Primary"
+                              , InputPrimaryVertices = "Rec/Vertex/Primary"
                               , RootInTES='/Event/NewEvent'
                               )
 
@@ -39,7 +39,7 @@ allKaons = NoPIDsParticleMaker('OtherAllKaons'
                               , Input = "Rec/ProtoP/Charged"
                               , Output = "Phys/OtherAllKaons/Particles"
                               , WriteP2PVRelations = False
-                              , InputPrimaryVertices = "/Event/NewEvent/Rec/Vertex/Primary"
+                              , InputPrimaryVertices = "Rec/Vertex/Primary"
                               , RootInTES = "/Event/NewEvent"
                               )
 
