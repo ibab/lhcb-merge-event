@@ -1,3 +1,4 @@
+#!/usr/bin/env gaudirun.py
 ########################################################################
 from Gaudi.Configuration import *
 from Configurables import DaVinci 
@@ -53,7 +54,7 @@ dstWriter = SelDSTWriter("MyDSTWriter",
 from Gaudi.Configuration import *
 
 from Configurables import DaVinci
-DaVinci().EvtMax = 1000
+DaVinci().EvtMax = 10000
 DaVinci().PrintFreq = 10
 DaVinci().SkipEvents = 0
 DaVinci().DataType = "2012"
