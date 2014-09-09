@@ -8,59 +8,40 @@ from CommonMCParticles import StandardMCKaons, StandardMCPions
 from DecayTreeTuple.Configuration import *
 from Configurables import RegisterAddr
 from OtherMCParticles import *
+from Configurables import StoreExplorerAlg
 
-locationRoot = '/Event/NewEvent'
+import os
+sys.path.append(os.getcwd())
+from MainSelection import *
+from OtherSelection import *
 
 GaudiPersistency()
 importOptions("data_local.py")
 
-# Selection for other loop
-_otherKaons = DataOnDemand(Location=locationRoot + '/Phys/OtherAllKaons/Particles')
-_otherPions = DataOnDemand(Location=locationRoot + '/Phys/OtherAllPions/Particles')
-_otherd2kkpi = CombineParticles("otherd2kkpi", InputPrimaryVertices=locationRoot + "/Rec/Vertex/Primary")
-_otherd2kkpi.DecayDescriptor = "D_s- -> K- K+ pi-"
-_otherd2kkpi.MotherCut = "(mcMatch('D_s-  ==> K- K+ pi-', ['/Event/NewEvent/Relations/NewEvent/Rec/ProtoP/Charged'], '/Event/NewEvent/MC/Particles'))"
-_otherd2kkpi.Preambulo = [
+
+_dsplus = DataOnDemand(Location=seqD2KKPiMain.outputLocation())
+_dsminus = DataOnDemand(Location=seqD2KKPiOther.outputLocation())
+combine = CombineParticles('CombineToBs')
+combine.DecayDescriptor = "B_s0 -> D_s+ D_s-"
+combine.MotherCut = "ALL"
+combine.Preambulo = [
     "from LoKiPhysMC.decorators import *",
     "from PartProp.Nodes import CC" ]
 
-selD2KKPiOther = Selection("SelD2KKPiOther",
-                           Algorithm = _otherd2kkpi,
-                           RequiredSelections=[_otherKaons, _otherPions],
-                           OutputBranch="NewEvent/Phys")
+bsSelection = Selection("FakeBsCandidates",
+                           Algorithm = combine,
+                           RequiredSelections=[_dsplus, _dsminus])
 
-#selD2KKPiOther.OutputLevel = 1
-
-seqD2KKPiOther = SelectionSequence('MCFilterOther', TopSelection = selD2KKPiOther)
-
-from Configurables import StoreExplorerAlg
-
-expl = StoreExplorerAlg('Explorer')
-
-tuple = DecayTreeTuple("Ds2KKPiTuple", RootInTES='/Event/NewEvent')
-tuple.Decay = "[D_s+ -> K- K+ pi+]CC"
-#tuple.Inputs = [seqD2KKPi.outputLocation()]
-tuple.Inputs = ['Phys/SelD2KKPiOther/Particles']
-tuple.ToolList = []
-from Configurables import MCMatchObjP2MCRelator
-
-tuple.addTupleTool('TupleToolKinematic')
-tuple.addTupleTool('TupleToolPropertime')
-
-mcTruth = tuple.addTupleTool("TupleToolMCTruth")
-mcTruth.IP2MCPAssociatorTypes = ['MCMatchObjP2MCRelator/MyMCMatcher']
-mcTruth.addTool(MCMatchObjP2MCRelator, name='MyMCMatcher')
-mcTruth.MyMCMatcher.RelTableLocations = ['/Event/NewEvent/Relations/NewEvent/Rec/ProtoP/Charged']
-
-#tuple.addTupleTool("TupleToolPropertime")
+bsSelectionSequence = SelectionSequence('FilterCombined', TopSelection = bsSelection)
 
 evtAlgs = GaudiSequencer("EventAlgs",
-                         Members=[RegisterAddr(AddressesFile='eventaddr.txt'),
+                         Members=[seqD2KKPiMain.sequence(),
+                                  RegisterAddr(AddressesFile='eventaddr.txt'),
                                   makeparts,
                                   seqD2KKPiOther.sequence(),
-                                  expl,
+                                  bsSelectionSequence.sequence(),
+                                  StoreExplorerAlg('Explorer'),
                                   MergeEvent(),
-                                  tuple,
                                   ])
 
 from Configurables import DaVinci
