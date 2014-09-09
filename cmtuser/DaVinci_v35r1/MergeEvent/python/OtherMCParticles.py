@@ -19,7 +19,7 @@ assoc = ChargedPP2MC('AssocProtos')
 assoc.TrackLocations = [ '/Event/NewEvent/Rec/Track/Best' ]
 assoc.InputData = [ '/Event/NewEvent/Rec/ProtoP/Charged' ]
 assoc.OutputTable = '/Event/NewEvent/Relations/NewEvent/Rec/ProtoP/Charged'
-assoc.OutputLevel = 1
+#assoc.OutputLevel = 1
 makeparts.Members.append(assoc)
 
 ppMaker = ChargedProtoParticleMaker('OtherProtoParticles', Output="Phys/OtherProtos", RootInTES='/Event/NewEvent')
@@ -43,8 +43,8 @@ allKaons = NoPIDsParticleMaker('OtherAllKaons'
                               , RootInTES = "/Event/NewEvent"
                               )
 
-allPions.OutputLevel = 2
-allKaons.OutputLevel = 2
+#allPions.OutputLevel = 2
+#allKaons.OutputLevel = 2
 
 makeparts.Members.append(allPions)
 makeparts.Members.append(allKaons)

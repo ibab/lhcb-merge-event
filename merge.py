@@ -29,7 +29,7 @@ selD2KKPiOther = Selection("SelD2KKPiOther",
                            RequiredSelections=[_otherKaons, _otherPions],
                            OutputBranch="NewEvent/Phys")
 
-selD2KKPiOther.OutputLevel = 1
+#selD2KKPiOther.OutputLevel = 1
 
 seqD2KKPiOther = SelectionSequence('MCFilterOther', TopSelection = selD2KKPiOther)
 
@@ -55,11 +55,11 @@ mcTruth.MyMCMatcher.RelTableLocations = ['/Event/NewEvent/Relations/NewEvent/Rec
 #tuple.addTupleTool("TupleToolPropertime")
 
 evtAlgs = GaudiSequencer("EventAlgs",
-                         Members=[RegisterAddr(AddressesFile='eventaddr.txt', OutputLevel=DEBUG),
-                                  #MergeEvent(),
+                         Members=[RegisterAddr(AddressesFile='eventaddr.txt'),
                                   makeparts,
-                                  expl,
                                   seqD2KKPiOther.sequence(),
+                                  expl,
+                                  MergeEvent(),
                                   tuple,
                                   ])
 
@@ -77,17 +77,17 @@ DaVinci().UserAlgorithms = [evtAlgs]
 
 from Configurables import UnpackMCParticle
 unpackMC = UnpackMCParticle('OtherUnpackMCParticle', InputName='/Event/NewEvent/pSim/MCParticles', OutputName='/Event/NewEvent/MC/Particles')
-unpackMC.OutputLevel = 1
+#unpackMC.OutputLevel = 1
 DataOnDemandSvc().AlgMap['/Event/NewEvent/MC/Particles'] = unpackMC
 
 from Configurables import UnpackMCVertex
 unpackMCV = UnpackMCVertex('OtherUnpackMCVertex', InputName='/Event/NewEvent/pSim/MCVertices', OutputName='/Event/NewEvent/MC/Vertices')
-unpackMCV.OutputLevel = 1
+#unpackMCV.OutputLevel = 1
 DataOnDemandSvc().AlgMap['/Event/NewEvent/MC/Vertices'] = unpackMCV
 
 from Configurables import UnpackRecVertex
 unpackPV = UnpackRecVertex('OtherUnpackRecVertex', InputName='/Event/NewEvent/pRec/Vertex/Primary', OutputName='/Event/NewEvent/Rec/Vertex/Primary', WeightsVector='/Event/NewEvent/Rec/Vertex/Weights')
-unpackPV.OutputLevel = 1
+#unpackPV.OutputLevel = 1
 DataOnDemandSvc().AlgMap['/Event/NewEvent/Rec/Vertex/Primary'] = unpackPV
 
 # Change the column size of Timing table
