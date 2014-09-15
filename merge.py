@@ -20,7 +20,7 @@ importOptions("data_local.py")
 
 
 _dsplus = DataOnDemand(Location=seqD2KKPiMain.outputLocation())
-_dsminus = DataOnDemand(Location=seqD2KKPiOther.outputLocation())
+_dsminus = DataOnDemand(Location='/Event/Phys/DsMinusCandidates/Particles')
 combine = CombineParticles('CombineToBs')
 combine.DecayDescriptor = "B_s0 -> D_s+ D_s-"
 combine.MotherCut = "ALL"
@@ -34,14 +34,28 @@ bsSelection = Selection("FakeBsCandidates",
 
 bsSelectionSequence = SelectionSequence('FilterCombined', TopSelection = bsSelection)
 
+from Configurables import P2MCPFromProtoP, BackgroundCategory
+fakebstuple = DecayTreeTuple("FakeBs")
+fakebstuple.Decay = "[B_s0 -> ^D_s- ^D_s+]CC"
+fakebstuple.Inputs = [bsSelectionSequence.outputLocation()]
+fakebstuple.addTupleTool("TupleToolPropertime")
+bkgcat = fakebstuple.addTupleTool("TupleToolMCBackgroundInfo")
+bkgcat.IBackgroundCategoryTypes = ['BackgroundCategory/MyBC']
+bkgcat.addTool(BackgroundCategory, name='MyBC')
+bkgcat.MyBC.addTool(P2MCPFromProtoP, name='P2MCPFromProtoP')
+bkgcat.MyBC.P2MCPFromProtoP.Locations = ['NewEvent/Relations/NewEvent/Rec/ProtoP/Charged', 'Relations/Rec/ProtoP/Charged']
+bkgcat.MyBC.P2MCPFromProtoP.MCParticleDefaultLocation = 'NewEvent/MC/Particles'
+#fakebstuple.OutputLevel = 1
+
 evtAlgs = GaudiSequencer("EventAlgs",
                          Members=[seqD2KKPiMain.sequence(),
                                   RegisterAddr(AddressesFile='eventaddr.txt'),
                                   makeparts,
                                   seqD2KKPiOther.sequence(),
+                                  MergeEvent(),
                                   bsSelectionSequence.sequence(),
                                   StoreExplorerAlg('Explorer'),
-                                  MergeEvent(),
+                                  fakebstuple
                                   ])
 
 from Configurables import DaVinci
@@ -76,6 +90,6 @@ from Configurables import TimingAuditor, SequencerTimerTool
 TimingAuditor().addTool(SequencerTimerTool,name="TIMER")
 TimingAuditor().TIMER.NameSize = 60
 
-from Configurables import AuditorSvc 
-AuditorSvc().Auditors.append("TES::TraceAuditor")
+#from Configurables import AuditorSvc 
+#AuditorSvc().Auditors.append("TES::TraceAuditor")
 

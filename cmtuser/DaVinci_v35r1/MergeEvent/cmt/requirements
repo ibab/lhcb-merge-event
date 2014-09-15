@@ -5,6 +5,7 @@ branches        src cmt doc python
 
 use             GaudiKernel *
 use             GaudiUtils  *
+use             DaVinciKernel v*  Phys
 use             GaudiAlg  *
 use             PhysEvent  * Event
 use             MCEvent   v* Event

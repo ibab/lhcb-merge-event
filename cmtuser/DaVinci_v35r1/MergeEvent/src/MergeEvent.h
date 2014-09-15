@@ -1,20 +1,14 @@
 #ifndef MERGEEVENT_H 
 #define MERGEEVENT_H
 
-// Include files 
-// from Gaudi
 #include "GaudiAlg/GaudiAlgorithm.h"
+#include "Kernel/DaVinciAlgorithm.h"
 
-/** @class MergeEvent MergeEvent.h
- *
- *  @author Igor Babuschkin
- *  @date   2014-07-09
- */
-class MergeEvent : public GaudiAlgorithm {
+class MergeEvent : public DaVinciAlgorithm {
 public: 
-  MergeEvent( const std::string& name, ISvcLocator* pSvcLocator );
+  MergeEvent(const std::string& name, ISvcLocator* pSvcLocator);
 
-  virtual ~MergeEvent( );
+  virtual ~MergeEvent();
 
   virtual StatusCode initialize();
   virtual StatusCode execute   ();
