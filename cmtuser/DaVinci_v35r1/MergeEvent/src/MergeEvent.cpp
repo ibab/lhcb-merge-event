@@ -34,44 +34,13 @@ StatusCode MergeEvent::execute() {
 
   debug() << "Execute MergeEvent" << endmsg;
 
-  //auto mainprotos = get<LHCb::ProtoParticles>("/Event/Rec/ProtoP/Charged");
-  //auto maintracks = get<LHCb::ProtoParticles>("/Event/Rec/Track/Best");
+  auto newProtos = get<LHCb::ProtoParticles>("/Event/Rec/ProtoP/Charged");
+  auto newTracks = get<LHCb::Tracks>("/Event/Rec/Track/Best");
 
   LHCb::Particles *mainParts = get<LHCb::Particles>("/Event/Phys/DsPlusCandidates/Particles");
   LHCb::Particles *otherParts = get<LHCb::Particles>("/Event/NewEvent/Phys/DsMinusCandidates/Particles");
 
-  /*
-  for (auto part: *parts) {
-      std::stack<LHCb::Particle> next;
-      LHCb::Particle::Vector leaves;
-
-      // Traverse the decay tree and take note of all
-      // decay products with proto particles
-      next.push(*part);
-
-      while (!next.empty()) {
-          LHCb::Particle curr = next.top();
-          next.pop();
-
-          for (auto daugh: curr.daughters()) {
-              next.push(*daugh);
-
-              if (daugh->proto()) {
-                  leaves.push_back(daugh);
-              }
-          }
-      }
-
-      for (auto x: leaves) {
-          auto cl = x->proto()->clone();
-          newprotos->add(cl);
-          newtracks->add(cl->track()->clone());
-      }
-  }
-
-  put(newprotos, "/Event/MergedEvent/Rec/ProtoP/Charged");
-  put(newtracks, "/Event/MergedEvent/Rec/Track/Best");
-  */
+  auto mainMCParts = get<LHCb::MCParticles>("/Event/MC/Particles");
 
   LHCb::Particle *mainP = nullptr;
   
@@ -84,21 +53,12 @@ StatusCode MergeEvent::execute() {
 
   info () << "Main PV is " << *mainPV << endmsg;
 
-  auto results = new LHCb::Particles;
-
   for (auto p: *otherParts) {
       const LHCb::VertexBase *bestPV = this->bestPV(p);
 
       info () << "Old PV is " << *bestPV << endmsg;
       auto offset = mainPV->position() - bestPV->position();
 
-      //const LHCb::Track *track = p->proto()->track();
-
-      //for (auto s: track->states()) {
-      //    auto curPos = s->position();
-      //    auto newPos = s->position() - offset;
-      //}
-      
       std::stack<LHCb::Particle const *> next;
       LHCb::Particle::Vector leaves;
 
@@ -118,20 +78,15 @@ StatusCode MergeEvent::execute() {
               }
           }
 
-          // Translate vertex location
-          if (curr->endVertex()) {
-              auto pos = curr->endVertex()->position();
-              LHCb::Particle* clone = curr->clone();
-              clone->endVertex()->setPosition(pos + offset);
-              results->add(clone);
-              const LHCb::VertexBase *newPV = this->bestPV(clone);
-              info() << "New PV is " << *newPV << endmsg;
-          }
           info() << "Current endvertex is " << curr->endVertex() << endmsg;
       }
 
       for (auto x: leaves) {
-         auto track = x->proto()->track();
+          auto proto = x->proto()->clone();
+          auto track = proto->track()->clone();
+
+          proto->setTrack(track);
+
           for (auto s: track->states()) {
               info() << "State was " << *s << endmsg;
               auto oldPos = s->position();
@@ -141,14 +96,14 @@ StatusCode MergeEvent::execute() {
               s->setZ(newPos.z());
               info() << "State is " << *s << endmsg;
           }
-      }
 
+          newProtos->insert(proto);
+          newTracks->insert(track);
+      }
   }
 
-  //auto decayVertices = get<LHCb::Vertices>("/Event/NewEvent/Phys/DsMinusCandidates/decayVertices");
-
-  put(results, "/Event/Phys/DsMinusCandidates/Particles");
-  //put(decayVertices, "/Event/Phys/DsMinusCandidates/decayVertices");
+  put(newProtos, "/Event/MergedEvent/Rec/ProtoP/Charged");
+  put(newTracks, "/Event/MergedEvent/Rec/Track/Best");
 
   return StatusCode::SUCCESS;
 }

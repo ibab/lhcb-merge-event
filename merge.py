@@ -18,34 +18,92 @@ from OtherSelection import *
 GaudiPersistency()
 importOptions("data_local.py")
 
+#_dsplus = DataOnDemand(Location=seqD2KKPiMain.outputLocation())
+#_dsminus = DataOnDemand(Location='/Event/NewEvent/Phys/DsMinusCandidates/Particles')
+#combine = CombineParticles('CombineToBs')
+#combine.DecayDescriptor = "B_s0 -> D_s+ D_s-"
+#combine.MotherCut = "ALL"
+#combine.Preambulo = [
+#    "from LoKiPhysMC.decorators import *",
+#    "from PartProp.Nodes import CC" ]
+#
+#bsSelection = Selection("FakeBsCandidates",
+#                           Algorithm = combine,
+#                           RequiredSelections=[_dsplus, _dsminus])
+#
+#bsSelectionSequence = SelectionSequence('FilterCombined', TopSelection = bsSelection)
 
-_dsplus = DataOnDemand(Location=seqD2KKPiMain.outputLocation())
-_dsminus = DataOnDemand(Location='/Event/Phys/DsMinusCandidates/Particles')
-combine = CombineParticles('CombineToBs')
-combine.DecayDescriptor = "B_s0 -> D_s+ D_s-"
-combine.MotherCut = "ALL"
-combine.Preambulo = [
+createEvent = GaudiSequencer('CreateFakeEvent')
+
+mergedPions = NoPIDsParticleMaker('MergedPions'
+                                 , Particle = "pion"
+                                 , Input = "MergedEvent/Rec/ProtoP/Charged"
+                                 , Output = "Phys/MergedPions/Particles"
+                                 , WriteP2PVRelations = False
+                                 , InputPrimaryVertices = "Rec/Vertex/Primary"
+                                 )
+
+mergedKaons = NoPIDsParticleMaker('MergedKaons'
+                                 , Particle = "kaon"
+                                 , Input = "MergedEvent/Rec/ProtoP/Charged"
+                                 , Output = "Phys/MergedKaons/Particles"
+                                 , WriteP2PVRelations = False
+                                 , InputPrimaryVertices = "Rec/Vertex/Primary"
+                                 )
+
+createEvent.Members.append(mergedPions)
+createEvent.Members.append(mergedKaons)
+
+_kaons = DataOnDemand(Location='/Event/Phys/MergedPions/Particles')
+_pions = DataOnDemand(Location='/Event/Phys/MergedKaons/Particles')
+
+combineA = CombineParticles('CombineA')
+combineA.DecayDescriptor = "D_s+ -> K+ K- pi+"
+combineA.MotherCut = "ALL"
+combineA.Preambulo = [
     "from LoKiPhysMC.decorators import *",
     "from PartProp.Nodes import CC" ]
 
-bsSelection = Selection("FakeBsCandidates",
-                           Algorithm = combine,
-                           RequiredSelections=[_dsplus, _dsminus])
+combineB = CombineParticles('CombineB')
+combineB.DecayDescriptor = "D_s- -> K- K+ pi-"
+combineB.MotherCut = "ALL"
+combineB.Preambulo = [
+    "from LoKiPhysMC.decorators import *",
+    "from PartProp.Nodes import CC" ]
 
-bsSelectionSequence = SelectionSequence('FilterCombined', TopSelection = bsSelection)
+combineAB = CombineParticles('CombineAB')
+combineAB.DecayDescriptor = "B_s0 -> D_s- D_s+"
+combineAB.MotherCut = "ALL"
+combineAB.Preambulo = [
+    "from LoKiPhysMC.decorators import *",
+    "from PartProp.Nodes import CC" ]
 
-from Configurables import P2MCPFromProtoP, BackgroundCategory
-fakebstuple = DecayTreeTuple("FakeBs")
-fakebstuple.Decay = "[B_s0 -> ^D_s- ^D_s+]CC"
-fakebstuple.Inputs = [bsSelectionSequence.outputLocation()]
-fakebstuple.addTupleTool("TupleToolPropertime")
-bkgcat = fakebstuple.addTupleTool("TupleToolMCBackgroundInfo")
-bkgcat.IBackgroundCategoryTypes = ['BackgroundCategory/MyBC']
-bkgcat.addTool(BackgroundCategory, name='MyBC')
-bkgcat.MyBC.addTool(P2MCPFromProtoP, name='P2MCPFromProtoP')
-bkgcat.MyBC.P2MCPFromProtoP.Locations = ['NewEvent/Relations/NewEvent/Rec/ProtoP/Charged', 'Relations/Rec/ProtoP/Charged']
-bkgcat.MyBC.P2MCPFromProtoP.MCParticleDefaultLocation = 'NewEvent/MC/Particles'
-#fakebstuple.OutputLevel = 1
+selectionA = Selection("FakeDsPlus",
+                        Algorithm = combineA,
+                        RequiredSelections=[_kaons, _pions])
+
+selectionA = Selection("FakeDsMinus",
+                        Algorithm = combineB,
+                        RequiredSelections=[_kaons, _pions])
+
+selectionAB = Selection("FakeBs",
+                        Algorithm = combineB,
+                        RequiredSelections=[_kaons, _pions])
+
+bsSelectionSequence = SelectionSequence('FilterFakeCombined', TopSelection = selectionAB)
+
+#from Configurables import P2MCPFromProtoP, BackgroundCategory
+#fakebstuple = DecayTreeTuple("FakeBs")
+#fakebstuple.Decay = "[B_s0 -> ^D_s- ^D_s+]CC"
+#fakebstuple.Inputs = [bsSelectionSequence.outputLocation()]
+#fakebstuple.addTupleTool("TupleToolPropertime")
+#bkgcat = fakebstuple.addTupleTool("TupleToolMCBackgroundInfo")
+#bkgcat.IBackgroundCategoryTypes = ['BackgroundCategory/MyBC']
+#bkgcat.addTool(BackgroundCategory, name='MyBC')
+#bkgcat.MyBC.addTool(P2MCPFromProtoP, name='P2MCPFromProtoP')
+#bkgcat.MyBC.P2MCPFromProtoP.Locations = ['NewEvent/Relations/NewEvent/Rec/ProtoP/Charged', 'Relations/Rec/ProtoP/Charged']
+#bkgcat.MyBC.P2MCPFromProtoP.MCParticleDefaultLocation = 'NewEvent/MC/Particles'
+#fakebstuple.OutputLevel = 2
 
 evtAlgs = GaudiSequencer("EventAlgs",
                          Members=[seqD2KKPiMain.sequence(),
@@ -53,9 +111,10 @@ evtAlgs = GaudiSequencer("EventAlgs",
                                   makeparts,
                                   seqD2KKPiOther.sequence(),
                                   MergeEvent(),
+                                  createEvent,
                                   bsSelectionSequence.sequence(),
                                   StoreExplorerAlg('Explorer'),
-                                  fakebstuple
+                                  #fakebstuple
                                   ])
 
 from Configurables import DaVinci
