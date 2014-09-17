@@ -59,14 +59,14 @@ _pions = DataOnDemand(Location='/Event/Phys/MergedKaons/Particles')
 
 combineA = CombineParticles('CombineA')
 combineA.DecayDescriptor = "D_s+ -> K+ K- pi+"
-combineA.MotherCut = "ALL"
+combineA.MotherCut = "(mcMatch('D_s+  ==> K+ K- pi+', ['/Event/MergedEvent/Relations/MergedEvent/Rec/ProtoP/Charged'], '/Event/MergedEvent/MC/Particles'))"
 combineA.Preambulo = [
     "from LoKiPhysMC.decorators import *",
     "from PartProp.Nodes import CC" ]
 
 combineB = CombineParticles('CombineB')
 combineB.DecayDescriptor = "D_s- -> K- K+ pi-"
-combineB.MotherCut = "ALL"
+combineB.MotherCut = "(mcMatch('D_s-  ==> K- K+ pi-', ['/Event/MergedEvent/Relations/MergedEvent/Rec/ProtoP/Charged'], '/Event/MergedEvent/MC/Particles'))"
 combineB.Preambulo = [
     "from LoKiPhysMC.decorators import *",
     "from PartProp.Nodes import CC" ]
@@ -78,19 +78,25 @@ combineAB.Preambulo = [
     "from LoKiPhysMC.decorators import *",
     "from PartProp.Nodes import CC" ]
 
-selectionA = Selection("FakeDsPlus",
+selectionA = Selection("FakeDsPlusSel",
                         Algorithm = combineA,
                         RequiredSelections=[_kaons, _pions])
 
-selectionA = Selection("FakeDsMinus",
+selectionB = Selection("FakeDsMinusSel",
                         Algorithm = combineB,
                         RequiredSelections=[_kaons, _pions])
+selectionB.OutputLevel = 1
 
-selectionAB = Selection("FakeBs",
-                        Algorithm = combineB,
-                        RequiredSelections=[_kaons, _pions])
 
-bsSelectionSequence = SelectionSequence('FilterFakeCombined', TopSelection = selectionAB)
+selASelectionSequence = SelectionSequence('FakeDsPlus', TopSelection = selectionA)
+selBSelectionSequence = SelectionSequence('FakeDsMinus', TopSelection = selectionB)
+
+selectionAB = Selection("FakeBsSel",
+                        Algorithm = combineAB,
+                        RequiredSelections=[DataOnDemand(Location=selASelectionSequence.outputLocation()),
+                                            DataOnDemand(Location=selBSelectionSequence.outputLocation())])
+                                            
+selABSelectionSequence = SelectionSequence('FakeBs', TopSelection = selectionAB)
 
 #from Configurables import P2MCPFromProtoP, BackgroundCategory
 #fakebstuple = DecayTreeTuple("FakeBs")
@@ -105,14 +111,23 @@ bsSelectionSequence = SelectionSequence('FilterFakeCombined', TopSelection = sel
 #bkgcat.MyBC.P2MCPFromProtoP.MCParticleDefaultLocation = 'NewEvent/MC/Particles'
 #fakebstuple.OutputLevel = 2
 
+from Configurables import MCMatchObjP2MCRelator
+merge = MergeEvent()
+merge.addTool(MCMatchObjP2MCRelator, name='MyRelator')
+merge.MyRelator.RelTableLocations = ['/Event/NewEvent/Relations/NewEvent/Rec/ProtoP/Charged']
+merge.OutputLevel = 1
+merge.MyRelator.OutputLevel = 1
+
 evtAlgs = GaudiSequencer("EventAlgs",
                          Members=[seqD2KKPiMain.sequence(),
                                   RegisterAddr(AddressesFile='eventaddr.txt'),
                                   makeparts,
                                   seqD2KKPiOther.sequence(),
-                                  MergeEvent(),
+                                  merge,
                                   createEvent,
-                                  bsSelectionSequence.sequence(),
+                                  selASelectionSequence.sequence(),
+                                  selBSelectionSequence.sequence(),
+                                  selABSelectionSequence.sequence(),
                                   StoreExplorerAlg('Explorer'),
                                   #fakebstuple
                                   ])
@@ -149,6 +164,6 @@ from Configurables import TimingAuditor, SequencerTimerTool
 TimingAuditor().addTool(SequencerTimerTool,name="TIMER")
 TimingAuditor().TIMER.NameSize = 60
 
-#from Configurables import AuditorSvc 
-#AuditorSvc().Auditors.append("TES::TraceAuditor")
+from Configurables import AuditorSvc 
+AuditorSvc().Auditors.append("TES::TraceAuditor")
 

@@ -33,8 +33,8 @@ othertuple.addTupleTool('TupleToolPropertime')
 
 mcTruth = othertuple.addTupleTool("TupleToolMCTruth")
 mcTruth.IP2MCPAssociatorTypes = ['MCMatchObjP2MCRelator/MyMCMatcher']
-mcTruth.addTool(MCMatchObjP2MCRelator, name='MyMCMatcher')
-mcTruth.MyMCMatcher.RelTableLocations = ['/Event/NewEvent/Relations/NewEvent/Rec/ProtoP/Charged']
+mcTruth.addTool(MCMatchObjP2MCRelator, name='MCMatchObjP2MCRelator')
+mcTruth.MCMatchObjP2MCRelator.RelTableLocations = ['/Event/NewEvent/Relations/NewEvent/Rec/ProtoP/Charged']
 
 #tuple.addTupleTool("TupleToolPropertime")
 

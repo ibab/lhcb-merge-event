@@ -6,6 +6,7 @@
 #include "Event/Particle.h"
 #include "Event/MCParticle.h"
 #include "GaudiKernel/IDataManagerSvc.h"
+#include "Relations/Relation1D.h"
 
 #include <stack>
 
@@ -15,7 +16,6 @@ MergeEvent::MergeEvent( const std::string& name,
                           ISvcLocator* pSvcLocator)
   : DaVinciAlgorithm ( name , pSvcLocator )
 {
-
 }
 
 MergeEvent::~MergeEvent() {} 
@@ -27,6 +27,8 @@ StatusCode MergeEvent::initialize() {
 
   if ( msgLevel(MSG::DEBUG) ) debug() << "Initialize " << endmsg;
 
+  m_assoc = tool<IParticle2MCAssociator>("MCMatchObjP2MCRelator/MyRelator", this);
+
   return StatusCode::SUCCESS;
 }
 
@@ -36,11 +38,12 @@ StatusCode MergeEvent::execute() {
 
   auto newProtos = get<LHCb::ProtoParticles>("/Event/Rec/ProtoP/Charged");
   auto newTracks = get<LHCb::Tracks>("/Event/Rec/Track/Best");
+  auto newMCParts = get<LHCb::MCParticles>("/Event/MC/Particles");
+  auto newRelations = get<LHCb::RelationWeighted1D<LHCb::ProtoParticle,LHCb::MCParticle,double>>("/Event/Relations/Rec/ProtoP/Charged");
 
   LHCb::Particles *mainParts = get<LHCb::Particles>("/Event/Phys/DsPlusCandidates/Particles");
   LHCb::Particles *otherParts = get<LHCb::Particles>("/Event/NewEvent/Phys/DsMinusCandidates/Particles");
-
-  auto mainMCParts = get<LHCb::MCParticles>("/Event/MC/Particles");
+  auto otherRelations = get<LHCb::RelationWeighted1D<LHCb::ProtoParticle,LHCb::MCParticle,double>>("/Event/NewEvent/Relations/NewEvent/Rec/ProtoP/Charged");
 
   LHCb::Particle *mainP = nullptr;
   
@@ -54,6 +57,7 @@ StatusCode MergeEvent::execute() {
   info () << "Main PV is " << *mainPV << endmsg;
 
   for (auto p: *otherParts) {
+
       const LHCb::VertexBase *bestPV = this->bestPV(p);
 
       info () << "Old PV is " << *bestPV << endmsg;
@@ -84,26 +88,39 @@ StatusCode MergeEvent::execute() {
       for (auto x: leaves) {
           auto proto = x->proto()->clone();
           auto track = proto->track()->clone();
-
           proto->setTrack(track);
 
           for (auto s: track->states()) {
-              info() << "State was " << *s << endmsg;
+              //info() << "State was " << *s << endmsg;
               auto oldPos = s->position();
               auto newPos = oldPos + offset;
               s->setX(newPos.x());
               s->setY(newPos.y());
               s->setZ(newPos.z());
-              info() << "State is " << *s << endmsg;
+              //info() << "State is " << *s << endmsg;
           }
+
+          info() << "Relations: " << *newRelations << endmsg;
+
+          auto mcp = m_assoc->relatedMCP(p, "/Event/NewEvent/MC/Particles");
+          auto mcpClone = mcp->clone();
+          info() << "Found best MCP at " << mcp << endmsg;
 
           newProtos->insert(proto);
           newTracks->insert(track);
+          newMCParts->insert(mcpClone);
+          for (auto entry: otherRelations->relations(x->proto())) {
+              newRelations->i_push(proto, entry.to(), entry.weight());
+              newRelations->i_sort();
+              info() << "Pushing new relation from " << *proto << " to " << entry.to() << " with weight " << entry.weight() << endmsg;
+          }
       }
   }
 
   put(newProtos, "/Event/MergedEvent/Rec/ProtoP/Charged");
   put(newTracks, "/Event/MergedEvent/Rec/Track/Best");
+  put(newMCParts, "/Event/MergedEvent/MC/Particles");
+  put(newRelations, "/Event/MergedEvent/Relations/MergedEvent/Rec/ProtoP/Charged");
 
   return StatusCode::SUCCESS;
 }
