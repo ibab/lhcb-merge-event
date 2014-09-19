@@ -70,6 +70,7 @@ combineB.MotherCut = "(mcMatch('D_s-  ==> K- K+ pi-', ['/Event/MergedEvent/Relat
 combineB.Preambulo = [
     "from LoKiPhysMC.decorators import *",
     "from PartProp.Nodes import CC" ]
+combineB.OutputLevel = 1
 
 combineAB = CombineParticles('CombineAB')
 combineAB.DecayDescriptor = "B_s0 -> D_s- D_s+"
@@ -85,8 +86,6 @@ selectionA = Selection("FakeDsPlusSel",
 selectionB = Selection("FakeDsMinusSel",
                         Algorithm = combineB,
                         RequiredSelections=[_kaons, _pions])
-selectionB.OutputLevel = 1
-
 
 selASelectionSequence = SelectionSequence('FakeDsPlus', TopSelection = selectionA)
 selBSelectionSequence = SelectionSequence('FakeDsMinus', TopSelection = selectionB)
@@ -115,8 +114,6 @@ from Configurables import MCMatchObjP2MCRelator
 merge = MergeEvent()
 merge.addTool(MCMatchObjP2MCRelator, name='MyRelator')
 merge.MyRelator.RelTableLocations = ['/Event/NewEvent/Relations/NewEvent/Rec/ProtoP/Charged']
-merge.OutputLevel = 1
-merge.MyRelator.OutputLevel = 1
 
 evtAlgs = GaudiSequencer("EventAlgs",
                          Members=[seqD2KKPiMain.sequence(),
@@ -125,10 +122,10 @@ evtAlgs = GaudiSequencer("EventAlgs",
                                   seqD2KKPiOther.sequence(),
                                   merge,
                                   createEvent,
+                                  StoreExplorerAlg('Explorer'),
                                   selASelectionSequence.sequence(),
                                   selBSelectionSequence.sequence(),
                                   selABSelectionSequence.sequence(),
-                                  StoreExplorerAlg('Explorer'),
                                   #fakebstuple
                                   ])
 

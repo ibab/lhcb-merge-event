@@ -32,6 +32,25 @@ StatusCode MergeEvent::initialize() {
   return StatusCode::SUCCESS;
 }
 
+template <class T>
+T* getOrAdd(T const * elem, std::vector<T const *> &reference, std::vector<T*> &cache) {
+
+  auto it = std::find(reference.begin(), reference.end(), elem);
+
+  // If the object is not know, we ignore it
+  if (it != reference.end()) {
+      int n = std::distance(reference.begin(), it);
+
+      if (!cache[n]) {
+          auto clone = elem->clone();
+          cache[n] = clone;
+          return clone;
+      } else {
+          return cache[n];
+      }
+  }
+}
+
 StatusCode MergeEvent::execute() {
 
   debug() << "Execute MergeEvent" << endmsg;
@@ -39,6 +58,8 @@ StatusCode MergeEvent::execute() {
   auto newProtos = get<LHCb::ProtoParticles>("/Event/Rec/ProtoP/Charged");
   auto newTracks = get<LHCb::Tracks>("/Event/Rec/Track/Best");
   auto newMCParts = get<LHCb::MCParticles>("/Event/MC/Particles");
+  auto newMCVertices = get<LHCb::MCVertices>("/Event/MC/Vertices");
+  info() << "Length of MCVertices is " << newMCVertices->size() << endmsg;
   auto newRelations = get<LHCb::RelationWeighted1D<LHCb::ProtoParticle,LHCb::MCParticle,double>>("/Event/Relations/Rec/ProtoP/Charged");
 
   LHCb::Particles *mainParts = get<LHCb::Particles>("/Event/Phys/DsPlusCandidates/Particles");
@@ -58,61 +79,81 @@ StatusCode MergeEvent::execute() {
 
   for (auto p: *otherParts) {
 
-      const LHCb::VertexBase *bestPV = this->bestPV(p);
+      // Clone all MC info associated with candidate
+      std::vector<LHCb::MCParticle const *> traversed;
+      std::vector<LHCb::MCVertex const *> vertices;
+      auto mcp = m_assoc->relatedMCP(p, "/Event/NewEvent/MC/Particles");
 
-      info () << "Old PV is " << *bestPV << endmsg;
-      auto offset = mainPV->position() - bestPV->position();
+      std::stack<LHCb::MCParticle const *> remaining;
+      remaining.push(mcp);
 
-      std::stack<LHCb::Particle const *> next;
-      LHCb::Particle::Vector leaves;
+      // Traverse current MC info first
+      while (!remaining.empty()) {
+          auto curr = remaining.top();
+          remaining.pop();
+          traversed.push_back(curr);
+          if (std::find(vertices.begin(), vertices.end(), curr->originVertex()) == vertices.end()) {
+              vertices.push_back(curr->originVertex());
+          }
+          info() << "Origin: " << curr->originVertex() << endmsg;
 
-      next.push(p);
-
-      // Traverse the decay tree and take note of all
-      // decay products with proto particles
-      while (!next.empty()) {
-          auto curr = next.top();
-          next.pop();
-
-          for (auto daugh: curr->daughters()) {
-              next.push(daugh);
-
-              if (daugh->proto()) {
-                  leaves.push_back(daugh);
+          for (auto vtx: curr->endVertices()) {
+              info() << "End: " << vtx << endmsg;
+              for (auto x: vtx->products()) {
+                  remaining.push(x);
               }
           }
-
-          info() << "Current endvertex is " << curr->endVertex() << endmsg;
       }
 
-      for (auto x: leaves) {
+      // Now copy the MC tree
+      info() << "Number of mcps to copy: " << traversed.size() << endmsg;
+      info() << "Number of vertices to copy: " << vertices.size() << endmsg;
+
+      std::vector<LHCb::MCParticle *> traversedC(nullptr, traversed.size());
+      std::vector<LHCb::MCVertex *> verticesC(nullptr, vertices.size());
+
+      remaining.push(mcp);
+      while (!remaining.empty()) {
+          auto curr = remaining.top();
+          remaining.pop();
+
+          auto currClone = getOrAdd(curr, traversed, traversedC);
+          auto ovtxClone = getOrAdd(curr->originVertex(), vertices, verticesC);
+
+          currClone->setOriginVertex(ovtxClone);
+          
+          if (find::
+
+      }
+
+      //newMCParts->insert(mcp);
+      //newMCVertices->insert(vtx);
+
+      // Clone and translate all event info associated with candidate
+      const LHCb::VertexBase *bestPV = this->bestPV(p);
+      auto offset = mainPV->position() - bestPV->position();
+
+      for (auto x: p->daughters()) {
           auto proto = x->proto()->clone();
           auto track = proto->track()->clone();
           proto->setTrack(track);
 
           for (auto s: track->states()) {
-              //info() << "State was " << *s << endmsg;
               auto oldPos = s->position();
               auto newPos = oldPos + offset;
               s->setX(newPos.x());
               s->setY(newPos.y());
               s->setZ(newPos.z());
-              //info() << "State is " << *s << endmsg;
           }
 
-          info() << "Relations: " << *newRelations << endmsg;
-
-          auto mcp = m_assoc->relatedMCP(p, "/Event/NewEvent/MC/Particles");
-          auto mcpClone = mcp->clone();
-          info() << "Found best MCP at " << mcp << endmsg;
+          auto xmcp = m_assoc->relatedMCP(x, "/Event/NewEvent/MC/Particles")->clone();
 
           newProtos->insert(proto);
           newTracks->insert(track);
-          newMCParts->insert(mcpClone);
+
           for (auto entry: otherRelations->relations(x->proto())) {
-              newRelations->i_push(proto, entry.to(), entry.weight());
+              newRelations->i_push(proto, xmcp, entry.weight());
               newRelations->i_sort();
-              info() << "Pushing new relation from " << *proto << " to " << entry.to() << " with weight " << entry.weight() << endmsg;
           }
       }
   }
