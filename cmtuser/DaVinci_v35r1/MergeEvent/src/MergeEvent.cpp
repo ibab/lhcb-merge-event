@@ -15,7 +15,6 @@ MergeEvent::MergeEvent( const std::string& name,
                           ISvcLocator* pSvcLocator)
   : DaVinciAlgorithm ( name , pSvcLocator )
 {
-
 }
 
 MergeEvent::~MergeEvent() {} 
@@ -82,67 +81,30 @@ StatusCode MergeEvent::execute() {
   
   const LHCb::VertexBase *mainPV = this->bestPV(mainP);
 
-  info () << "Main PV is " << *mainPV << endmsg;
-
   auto results = new LHCb::Particles;
 
-  for (auto p: *otherParts) {
-      const LHCb::VertexBase *bestPV = this->bestPV(p);
+  const std::string finderType = "GenericParticle2PVRelator__p2PVWithIPChi2_OfflineDistanceCalculatorName_/OtherPVFinder";
+  auto m_otherBestPV = tool<IRelatedPVFinder>(finderType, this);
 
-      info () << "Old PV is " << *bestPV << endmsg;
-      auto offset = mainPV->position() - bestPV->position();
+  if (mainPV) {
+      for (auto p: *otherParts) {
+          const LHCb::VertexBase *bestPV = m_otherBestPV->relatedPV(p, "/Event/NewEvent/Rec/Vertex/Primary");
 
-      //const LHCb::Track *track = p->proto()->track();
+          info () << "Old PV is " << *bestPV << endmsg;
+          auto offset = mainPV->position() - bestPV->position();
 
-      //for (auto s: track->states()) {
-      //    auto curPos = s->position();
-      //    auto newPos = s->position() - offset;
-      //}
-      
-      std::stack<LHCb::Particle const *> next;
-      LHCb::Particle::Vector leaves;
+          auto clone = p->clone();
 
-      next.push(p);
+          auto pos = clone->referencePoint();
+          clone->setReferencePoint(pos + offset);
 
-      // Traverse the decay tree and take note of all
-      // decay products with proto particles
-      while (!next.empty()) {
-          auto curr = next.top();
-          next.pop();
-
-          for (auto daugh: curr->daughters()) {
-              next.push(daugh);
-
-              if (daugh->proto()) {
-                  leaves.push_back(daugh);
-              }
-          }
-
-          // Translate vertex location
-          if (curr->endVertex()) {
-              auto pos = curr->endVertex()->position();
-              LHCb::Particle* clone = curr->clone();
+          if (clone->endVertex()) {
+              auto pos = clone->endVertex()->position();
               clone->endVertex()->setPosition(pos + offset);
-              results->add(clone);
-              const LHCb::VertexBase *newPV = this->bestPV(clone);
-              info() << "New PV is " << *newPV << endmsg;
           }
-          info() << "Current endvertex is " << curr->endVertex() << endmsg;
-      }
 
-      for (auto x: leaves) {
-         auto track = x->proto()->track();
-          for (auto s: track->states()) {
-              info() << "State was " << *s << endmsg;
-              auto oldPos = s->position();
-              auto newPos = oldPos + offset;
-              s->setX(newPos.x());
-              s->setY(newPos.y());
-              s->setZ(newPos.z());
-              info() << "State is " << *s << endmsg;
-          }
+          results->insert(clone);
       }
-
   }
 
   //auto decayVertices = get<LHCb::Vertices>("/Event/NewEvent/Phys/DsMinusCandidates/decayVertices");

@@ -3,6 +3,7 @@
 
 #include "GaudiAlg/GaudiAlgorithm.h"
 #include "Kernel/DaVinciAlgorithm.h"
+#include "Kernel/IRelatedPVFinder.h"
 
 class MergeEvent : public DaVinciAlgorithm {
 public: 

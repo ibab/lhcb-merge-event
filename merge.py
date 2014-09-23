@@ -59,7 +59,7 @@ evtAlgs = GaudiSequencer("EventAlgs",
                                   ])
 
 from Configurables import DaVinci
-DaVinci().EvtMax = 1
+DaVinci().EvtMax = 10000
 DaVinci().PrintFreq = 1
 DaVinci().SkipEvents = 0
 DaVinci().DataType = "2011"
