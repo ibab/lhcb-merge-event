@@ -114,6 +114,8 @@ from Configurables import MCMatchObjP2MCRelator
 merge = MergeEvent()
 merge.addTool(MCMatchObjP2MCRelator, name='MyRelator')
 merge.MyRelator.RelTableLocations = ['/Event/NewEvent/Relations/NewEvent/Rec/ProtoP/Charged']
+#merge.OutputLevel = 1
+
 
 evtAlgs = GaudiSequencer("EventAlgs",
                          Members=[seqD2KKPiMain.sequence(),
@@ -123,7 +125,7 @@ evtAlgs = GaudiSequencer("EventAlgs",
                                   merge,
                                   createEvent,
                                   StoreExplorerAlg('Explorer'),
-                                  selASelectionSequence.sequence(),
+                                  #selASelectionSequence.sequence(),
                                   selBSelectionSequence.sequence(),
                                   selABSelectionSequence.sequence(),
                                   #fakebstuple
@@ -161,6 +163,6 @@ from Configurables import TimingAuditor, SequencerTimerTool
 TimingAuditor().addTool(SequencerTimerTool,name="TIMER")
 TimingAuditor().TIMER.NameSize = 60
 
-from Configurables import AuditorSvc 
-AuditorSvc().Auditors.append("TES::TraceAuditor")
+#from Configurables import AuditorSvc 
+#AuditorSvc().Auditors.append("TES::TraceAuditor")
 

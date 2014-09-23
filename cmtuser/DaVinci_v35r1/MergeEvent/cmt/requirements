@@ -8,7 +8,10 @@ use             GaudiUtils  *
 use             DaVinciKernel v*  Phys
 use             GaudiAlg  *
 use             PhysEvent  * Event
-use             MCEvent   v* Event
+use             MicroDst           v*  Event
+use             MicroDSTInterfaces  v* MicroDST
+use             MicroDSTTools  v* MicroDST
+use             MicroDSTBase  v* MicroDST
 
 use             ROOT        * LCG_Interfaces
 use             AIDA        * LCG_Interfaces -no_auto_imports
@@ -19,6 +22,7 @@ use             vdt         * LCG_Interfaces
 library         MergeEvent    ../src/*.cpp -import=AIDA -import=Boost -no_static
 
 # ============== patterns =====================================================
+apply_pattern install_more_includes more=MicroDST
 apply_pattern   component_library library="MergeEvent"
 apply_pattern install_python_modules
 
