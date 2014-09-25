@@ -70,7 +70,7 @@ combineB.MotherCut = "(mcMatch('D_s-  ==> K- K+ pi-', ['/Event/MergedEvent/Relat
 combineB.Preambulo = [
     "from LoKiPhysMC.decorators import *",
     "from PartProp.Nodes import CC" ]
-combineB.OutputLevel = 1
+#combineB.OutputLevel = 1
 
 combineAB = CombineParticles('CombineAB')
 combineAB.DecayDescriptor = "B_s0 -> D_s- D_s+"
@@ -97,17 +97,17 @@ selectionAB = Selection("FakeBsSel",
                                             
 selABSelectionSequence = SelectionSequence('FakeBs', TopSelection = selectionAB)
 
-#from Configurables import P2MCPFromProtoP, BackgroundCategory
-#fakebstuple = DecayTreeTuple("FakeBs")
-#fakebstuple.Decay = "[B_s0 -> ^D_s- ^D_s+]CC"
-#fakebstuple.Inputs = [bsSelectionSequence.outputLocation()]
+from Configurables import P2MCPFromProtoP, BackgroundCategory
+fakebstuple = DecayTreeTuple("out")
+fakebstuple.Decay = "[B_s0 -> ^D_s- ^D_s+]CC"
+fakebstuple.Inputs = [selABSelectionSequence.outputLocation()]
 #fakebstuple.addTupleTool("TupleToolPropertime")
 #bkgcat = fakebstuple.addTupleTool("TupleToolMCBackgroundInfo")
 #bkgcat.IBackgroundCategoryTypes = ['BackgroundCategory/MyBC']
 #bkgcat.addTool(BackgroundCategory, name='MyBC')
 #bkgcat.MyBC.addTool(P2MCPFromProtoP, name='P2MCPFromProtoP')
-#bkgcat.MyBC.P2MCPFromProtoP.Locations = ['NewEvent/Relations/NewEvent/Rec/ProtoP/Charged', 'Relations/Rec/ProtoP/Charged']
-#bkgcat.MyBC.P2MCPFromProtoP.MCParticleDefaultLocation = 'NewEvent/MC/Particles'
+#bkgcat.MyBC.P2MCPFromProtoP.Locations = ['MergedEvent/Relations/MergedEvent/Rec/ProtoP/Charged', 'Relations/Rec/ProtoP/Charged']
+#bkgcat.MyBC.P2MCPFromProtoP.MCParticleDefaultLocation = 'MergedEvent/MC/Particles'
 #fakebstuple.OutputLevel = 2
 
 from Configurables import MCMatchObjP2MCRelator
@@ -125,14 +125,14 @@ evtAlgs = GaudiSequencer("EventAlgs",
                                   merge,
                                   createEvent,
                                   StoreExplorerAlg('Explorer'),
-                                  #selASelectionSequence.sequence(),
+                                  selASelectionSequence.sequence(),
                                   selBSelectionSequence.sequence(),
                                   selABSelectionSequence.sequence(),
-                                  #fakebstuple
+                                  fakebstuple
                                   ])
 
 from Configurables import DaVinci
-DaVinci().EvtMax = 1
+DaVinci().EvtMax = 1000
 DaVinci().PrintFreq = 1
 DaVinci().SkipEvents = 0
 DaVinci().DataType = "2011"

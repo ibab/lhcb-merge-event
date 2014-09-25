@@ -5,6 +5,9 @@
 #include "Kernel/DaVinciAlgorithm.h"
 #include "Kernel/IParticle2MCAssociator.h"
 #include "MicroDST/ICloneMCParticle.h"
+#include "MicroDST/ICloneMCVertex.h"
+
+#include "MCCloner.h"
 
 class MergeEvent : public DaVinciAlgorithm {
 public: 
@@ -21,6 +24,7 @@ protected:
 private:
   IParticle2MCAssociator* m_assoc;
   ICloneMCParticle* m_mcCloner;
+  ICloneMCVertex* m_mcVCloner;
   std::string m_prefix;
 };
 
