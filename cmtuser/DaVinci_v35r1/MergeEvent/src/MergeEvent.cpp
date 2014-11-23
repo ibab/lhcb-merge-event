@@ -53,6 +53,7 @@ StatusCode MergeEvent::execute() {
 
   auto selected = get<LHCb::Particles>("/Event/NewEvent/Phys/DsMinusCandidates/Particles");
 
+  auto mainParts = get<LHCb::Particles>("/Event/Phys/DsPlusCandidates/Particles");
   auto mainMCParticles = get<LHCb::MCParticles>("/Event/MC/Particles");
   auto mainMCVertices = get<LHCb::MCVertices>("/Event/MC/Vertices");
 
@@ -63,6 +64,7 @@ StatusCode MergeEvent::execute() {
   auto newMCVertices = new LHCb::MCVertices;
 
   std::map<const LHCb::MCParticle*, LHCb::MCParticle*> toClone;
+
 
   for (auto mcp: *mainMCParticles) {
       newMCParticles->insert(mcp);
@@ -82,11 +84,40 @@ StatusCode MergeEvent::execute() {
       newMCVertices->insert(clone);
   }
 
+  const LHCb::Particle* mainP;
+  for (auto &p: *mainParts) {
+      mainP = p;
+      break;
+  }
+
+  const LHCb::VertexBase *mainPV = this->bestPV(mainP);
+  if (!mainPV) {
+      return StatusCode::SUCCESS;
+  }
+
+  const std::string finderType = "GenericParticle2PVRelator__p2PVWithIPChi2_OfflineDistanceCalculatorName_/OtherPVFinder";
+  auto m_otherBestPV = tool<IRelatedPVFinder>(finderType, this);
+
   for (auto p: *selected) {
       for (auto d: p->daughters()) {
           auto proto = d->proto()->clone();
           newProtos->insert(proto);
           auto track = proto->track()->clone();
+
+          const LHCb::VertexBase *bestPV = m_otherBestPV->relatedPV(p, "/Event/NewEvent/Rec/Vertex/Primary");
+          auto offset = mainPV->position() - bestPV->position();
+
+          for (auto s: track->states()) {
+              //info() << "State was " << *s << endmsg;
+              auto oldPos = s->position();
+              auto newPos = oldPos + offset;
+              s->setX(newPos.x());
+              s->setY(newPos.y());
+              s->setZ(newPos.z());
+              //info() << "State is " << *s << endmsg;
+          }
+
+          proto->setTrack(track);
           newTracks->insert(track);
 
           auto mcp = m_assoc->relatedMCP(d, "/Event/NewEvent/MC/Particles");
@@ -96,7 +127,7 @@ StatusCode MergeEvent::execute() {
               newRelations->relate(proto, toClone.at(mcp), entry.weight());
           }
       }
-      // Only include a single candidate for now
+      // FIXME Only include a single candidate for now
       break;
   }
 

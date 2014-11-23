@@ -68,7 +68,7 @@ StatusCode RegisterAddr::execute() {
     ++m_count;
   }
 
-  // Test if it works
+  // Relink addresses
   std::vector<std::string> paths({"NewEvent/pRec",
                                   "NewEvent/MC",
                                   "NewEvent/pSim",

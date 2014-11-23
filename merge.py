@@ -97,10 +97,19 @@ selectionAB = Selection("FakeBsSel",
                                             
 selABSelectionSequence = SelectionSequence('FakeBs', TopSelection = selectionAB)
 
+
+from Configurables import FitDecayTrees
+fitD2KKP = FitDecayTrees ( 
+    "fitD2KKP" , 
+    Code = "DECTREE('B_s0 -> (D_s+ -> K+ K- pi+) (D_s- -> K- K+ pi-)')",
+    MassConstraints = [ 'D_s+', 'D_s-' ], 
+    )
+fitD2KKP.Inputs = [selABSelectionSequence.outputLocation()]
+
 from Configurables import P2MCPFromProtoP, BackgroundCategory
 fakebstuple = DecayTreeTuple("out")
-fakebstuple.Decay = "[B_s0 -> ^D_s- ^D_s+]CC"
-fakebstuple.Inputs = [selABSelectionSequence.outputLocation()]
+fakebstuple.Decay = "'[B_s0 -> ^D_s- ^D_s+]CC'"
+fakebstuple.Inputs = ['Phys/fitD2KKP']
 #fakebstuple.addTupleTool("TupleToolPropertime")
 #bkgcat = fakebstuple.addTupleTool("TupleToolMCBackgroundInfo")
 #bkgcat.IBackgroundCategoryTypes = ['BackgroundCategory/MyBC']
@@ -128,11 +137,13 @@ evtAlgs = GaudiSequencer("EventAlgs",
                                   selASelectionSequence.sequence(),
                                   selBSelectionSequence.sequence(),
                                   selABSelectionSequence.sequence(),
+                                  fitD2KKP,
                                   fakebstuple
                                   ])
 
+
 from Configurables import DaVinci
-DaVinci().EvtMax = 1000
+DaVinci().EvtMax = 20000
 DaVinci().PrintFreq = 1
 DaVinci().SkipEvents = 0
 DaVinci().DataType = "2011"

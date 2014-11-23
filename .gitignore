@@ -15,3 +15,5 @@ x86_64-*-dbg/
 *.dst
 .BenderHistory*
 *catalog.xml
+*.log
+*.pyc
